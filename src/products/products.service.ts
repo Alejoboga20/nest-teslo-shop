@@ -6,6 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { isUUID } from 'class-validator';
 import { PaginationDto } from 'src/common/dtos';
 import { Repository } from 'typeorm';
 
@@ -42,11 +43,16 @@ export class ProductsService {
     });
   }
 
-  async findOne(id: number) {
-    const product = await this.productRepository.findOneBy({ id });
+  async findOne(term: string) {
+    let product: Product;
 
-    if (!product)
-      throw new NotFoundException(`Product with id: ${id} not found`);
+    if (isUUID(term)) {
+      product = await this.productRepository.findOneBy({ id: +term });
+    } else {
+      product = await this.productRepository.findOneBy({ slug: term });
+    }
+
+    if (!product) throw new NotFoundException(`Product with ${term} not found`);
 
     return product;
   }
@@ -55,10 +61,10 @@ export class ProductsService {
     return `This action updates a #${id} product`;
   }
 
-  async remove(id: number) {
+  async remove(id: string) {
     await this.findOne(id);
 
-    await this.productRepository.delete({ id });
+    await this.productRepository.delete({ id: +id });
   }
 
   private handleDbExceptions(error: any) {
