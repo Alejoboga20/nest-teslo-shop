@@ -47,7 +47,7 @@ export class ProductsService {
     let product: Product;
 
     if (isUUID(term)) {
-      product = await this.productRepository.findOneBy({ id: +term });
+      product = await this.productRepository.findOneBy({ id: term });
     } else {
       const queryBuilder = this.productRepository.createQueryBuilder();
 
@@ -64,14 +64,28 @@ export class ProductsService {
     return product;
   }
 
-  update(id: number, updateProductDto: UpdateProductDto) {
-    return `This action updates a #${id} product`;
+  async update(id: string, updateProductDto: UpdateProductDto) {
+    const product = await this.productRepository.preload({
+      id: id,
+      ...updateProductDto,
+    });
+
+    if (!product)
+      throw new NotFoundException(`Product with id: ${id} not found`);
+
+    try {
+      await this.productRepository.save(product);
+    } catch (error) {
+      this.handleDbExceptions(error);
+    }
+
+    return product;
   }
 
   async remove(id: string) {
     await this.findOne(id);
 
-    await this.productRepository.delete({ id: +id });
+    await this.productRepository.delete({ id: id });
   }
 
   private handleDbExceptions(error: any) {
