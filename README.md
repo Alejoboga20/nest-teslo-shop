@@ -8,6 +8,8 @@
 2. `yarn install`
 3. Clone **.env.template** file, rename it to **.env**
 4. Get up and running db:
+5. `yarn start:dev`
+6. Seed DB: `GET /seed`
 
 ```
 docker-compose up -d
